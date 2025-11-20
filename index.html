@@ -214,6 +214,21 @@
         </div>
     </footer>
 
+    <div class="tts-floating" aria-hidden="false">
+        <button class="tts-toggle" aria-pressed="false" title="Ler página">🔊</button>
+        <div class="tts-controls" hidden>
+            <label class="tts-row" style="display:flex;gap:.5rem;align-items:center;">
+                <span style="font-size:.85rem;color:#333">Voz:</span>
+                <select class="tts-voices" aria-label="Selecionar voz" style="min-width:180px"></select>
+            </label>
+            <div class="tts-row" style="display:flex;gap:.5rem;margin-top:.5rem;">
+                <button class="tts-play">Ler</button>
+                <button class="tts-pause">Pausar</button>
+                <button class="tts-stop">Parar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
