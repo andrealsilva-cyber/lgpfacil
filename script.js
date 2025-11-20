@@ -132,29 +132,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Adicionar classe active ao menu conforme scroll
-    const sections = document.querySelectorAll('.section, .hero');
-    const navLinks = document.querySelectorAll('.nav a');
+        const navLinks = document.querySelectorAll('.nav a');
 
-    function highlightMenu() {
-        let current = '';
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            if (scrollY >= (sectionTop - 200)) {
-                current = section.getAttribute('id') || '';
-            }
-        });
+        function setActiveMenuByUrl() {
+            const currentPage = window.location.pathname.split('/').pop();
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const href = link.getAttribute('href');
+                if (
+                    (href === 'index.html' && (currentPage === '' || currentPage === 'index.html')) ||
+                    (href === 'micro.html' && currentPage === 'micro.html') ||
+                    (href === 'pequeno.html' && currentPage === 'pequeno.html') ||
+                    (href === 'contato.html' && currentPage === 'contato.html') ||
+                    (href === 'soluções.html' && currentPage === 'soluções.html') ||
+                    (href === 'recursos.html' && currentPage === 'recursos.html')
+                ) {
+                    link.classList.add('active');
+                }
+            });
+        }
 
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}` || 
-                (current === '' && link.getAttribute('href') === 'index.html')) {
-                link.classList.add('active');
-            }
-        });
-    }
-
-    window.addEventListener('scroll', highlightMenu);
+        setActiveMenuByUrl();
+        window.addEventListener('popstate', setActiveMenuByUrl);
 
     // Formulário de contato
     const contactForm = document.querySelector('.contact-form form');
@@ -185,6 +184,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Observa quando o footer entra na viewport e esconde o card flutuante
+    try {
+        const starterBar = document.querySelector('.fixed-starter-bar');
+        const footer = document.querySelector('.footer');
+
+        if (starterBar && footer && 'IntersectionObserver' in window) {
+            const io = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        starterBar.classList.add('hidden');
+                    } else {
+                        starterBar.classList.remove('hidden');
+                    }
+                });
+            }, { root: null, threshold: 0 });
+
+            io.observe(footer);
+        }
+    } catch (e) {
+        // falha silenciosa sem quebrar outras funcionalidades
+        console.error('Starter bar observer error:', e);
+    }
 });
 
 // Preloader simples (opcional)
@@ -202,3 +224,114 @@ window.addEventListener('load', function() {
         });
     }, 1000);
 });
+
+{ /* Adição: TTS (Web Speech API) para ler o conteúdo da página */ }
+
+(function () {
+    if (!('speechSynthesis' in window)) return; // se não suportado, sai
+
+    const synth = window.speechSynthesis;
+    let utterance = null;
+    let voices = [];
+    const toggleBtn = document.querySelector('.tts-toggle');
+    const controls = document.querySelector('.tts-controls');
+    const voicesSelect = document.querySelector('.tts-voices');
+    const playBtn = document.querySelector('.tts-play');
+    const pauseBtn = document.querySelector('.tts-pause');
+    const stopBtn = document.querySelector('.tts-stop');
+    const ttsFloating = document.querySelector('.tts-floating');
+    const footer = document.querySelector('.footer');
+
+    function getReadableText() {
+        const main = document.querySelector('main') || document.querySelector('.unified-content') || document.body;
+        // remove elementos que não devem ser lidos
+        const clones = main.cloneNode(true);
+        clones.querySelectorAll('script, style, noscript, .fixed-starter-bar, .tts-floating').forEach(n => n.remove());
+        return clones.innerText.trim();
+    }
+
+    function populateVoices() {
+        voices = synth.getVoices().filter(v => v.lang && v.name);
+        voicesSelect.innerHTML = '';
+        voices.forEach((v, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `${v.name} — ${v.lang}`;
+            voicesSelect.appendChild(opt);
+        });
+    }
+
+    // carregar vozes (alguns browsers carregam async)
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    function createUtterance(text) {
+        if (!text) return null;
+        const u = new SpeechSynthesisUtterance(text);
+        const selected = voicesSelect.value ? voices[+voicesSelect.value] : voices.find(v => v.lang.startsWith('pt')) || voices[0];
+        if (selected) u.voice = selected;
+        u.rate = 1; // ajustar se desejar
+        u.pitch = 1;
+        u.lang = u.voice && u.voice.lang ? u.voice.lang : 'pt-BR';
+        u.onend = () => { utterance = null; toggleBtn.textContent = '🔊'; };
+        u.onerror = () => { utterance = null; toggleBtn.textContent = '🔊'; };
+        return u;
+    }
+
+    function startReading() {
+        if (synth.speaking) {
+            // se estava pausado, retomar
+            if (synth.paused) synth.resume();
+            return;
+        }
+        const text = getReadableText();
+        if (!text) return alert('Conteúdo não encontrado para leitura.');
+        utterance = createUtterance(text);
+        if (!utterance) return;
+        synth.cancel();
+        synth.speak(utterance);
+        toggleBtn.textContent = '⏸';
+    }
+
+    function pauseReading() {
+        if (synth.speaking && !synth.paused) synth.pause();
+    }
+
+    function stopReading() {
+        if (synth.speaking || synth.paused) synth.cancel();
+        utterance = null;
+        toggleBtn.textContent = '🔊';
+    }
+
+    // toggle show/hide controles
+    if (toggleBtn && controls) {
+        toggleBtn.addEventListener('click', () => {
+            const expanded = toggleBtn.getAttribute('aria-pressed') === 'true';
+            toggleBtn.setAttribute('aria-pressed', String(!expanded));
+            controls.hidden = expanded; // mostrar quando estava fechado
+        });
+    }
+
+    if (playBtn) playBtn.addEventListener('click', startReading);
+    if (pauseBtn) pauseBtn.addEventListener('click', pauseReading);
+    if (stopBtn) stopBtn.addEventListener('click', stopReading);
+
+    // Esconder o card quando o footer entra na viewport (mesma lógica do starter-card)
+    if (ttsFloating && footer && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    ttsFloating.classList.add('hidden');
+                } else {
+                    ttsFloating.classList.remove('hidden');
+                }
+            });
+        }, { root: null, threshold: 0 });
+        io.observe(footer);
+    }
+
+    // limpar ao trocar de página/rota, evitar leitura em background
+    window.addEventListener('beforeunload', () => { if (synth) synth.cancel(); });
+})();
