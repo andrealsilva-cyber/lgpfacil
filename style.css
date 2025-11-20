@@ -23,7 +23,24 @@ body {
     background-color: var(--background-color);
 }
 
-.container {
+.starter-card {
+    max-width: 100%;
+    margin: 0 auto;
+    border-radius: 12px;
+}
+
+.profile-buttons {
+    gap: 0.6rem;
+}
+
+.profile-btn {
+    padding: 0.7rem 1rem;
+    font-size: 0.95rem;
+}
+
+.card-content i {
+    font-size: 1.6rem;
+}iner {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -380,6 +397,7 @@ body {
     bottom: 2rem;
     right: 2rem;
     z-index: 1000;
+    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .starter-card {
@@ -448,6 +466,13 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+}
+
+.profile-btn i {
+    font-size: 1.6rem;
+    color: white;
+    margin-right: 0.5rem;
+    margin-bottom: 0;
 }
 
 .profile-btn.micro {
@@ -656,68 +681,30 @@ body {
 
 .contact-grid {
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 3rem;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* mantém 2 colunas quando houver espaço */
+    gap: 2rem;
+    align-items: start;
 }
 
-.contact-info {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.contact-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid #eee;
-}
-
-.contact-item:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.contact-item i {
-    font-size: 1.2rem;
-    color: var(--secondary-color);
-    margin-top: 0.2rem;
-}
-
+.contact-info,
 .contact-form {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
     width: 100%;
-    padding: 0.8rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
+    min-width: 0; /* evita que o conteúdo force colunas estreitas */
+    box-sizing: border-box;
 }
 
+/* Caixa de mensagem maior */
 .form-group textarea {
-    resize: vertical;
-    min-height: 120px;
+    min-height: 220px; /* aumentei para melhorar a área de escrita */
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Ajuste responsivo: em telas pequenas mantém uma única coluna */
+@media (max-width: 768px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Responsividade */
@@ -864,4 +851,169 @@ button:focus-visible,
 a:focus-visible {
     outline: 2px solid var(--secondary-color);
     outline-offset: 2px;
+}
+
+.container {
+    max-width: clamp(320px, 90vw, 1200px);
+    margin: 0 auto;
+    padding: 0 1.25rem; /* espaçamento lateral padrão para leitura confortável */
+}
+
+/* Espaçamento interno das seções para evitar colagem nas bordas */
+.section,
+.unified-section,
+.hero,
+.footer {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+}
+
+/* Constrain e alinhamento dos conteúdos textuais para leitura */
+.unified-content,
+.intro-text,
+.lgpd-text,
+.purpose-text,
+.article-card,
+.resource-category,
+.contact-info,
+.contact-form {
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left; /* força alinhamento à esquerda em telas médias/grandes */
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+}
+
+/* Em telas pequenas, centraliza hero e botões mantendo padding lateral */
+@media (max-width: 768px) {
+    .unified-content,
+    .intro-text,
+    .lgpd-text,
+    .purpose-text {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        text-align: center; /* mantém centralização no mobile para melhor leitura */
+    }
+}
+
+/* Ajustes finos em tipografia para evitar quebras estranhas */
+p, li {
+    word-break: break-word;
+    hyphens: auto;
+}
+
+/* Card flutuante: comportamento e visibilidade controlável */
+.fixed-starter-bar {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 1000;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Classe aplicada via JS quando o rodapé está visível para esconder o card */
+.fixed-starter-bar.hidden {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+}
+
+/* Em telas muito pequenas, desloca o card para ocupar menos área e evitar overlay */
+@media (max-width: 480px) {
+    .fixed-starter-bar {
+        right: 1rem;
+        left: 1rem;
+        bottom: 1rem;
+        display: flex;
+        justify-content: center;
+    }
+
+    .starter-card {
+        max-width: 100%;
+        width: 320px;
+    }
+}
+
+/* Garante margem inferior do conteúdo principal para que footer não seja coberto visualmente */
+main, .content-grid, .unified-content {
+    padding-bottom: calc(4rem + 1rem); /* espaço extra antes do footer */
+}
+
+/* Adição: estilos para o card TTS flutuante */
+
+.tts-floating {
+    position: fixed;
+    left: 1.25rem;
+    bottom: 2rem;
+    z-index: 1100;
+    background: #ffffff;
+    border: 1px solid rgba(0,0,0,0.08);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    border-radius: 12px;
+    padding: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    transition: transform .2s ease, opacity .2s ease;
+    font-family: inherit;
+}
+
+.tts-floating.hidden {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+}
+
+.tts-toggle {
+    background: var(--secondary-color);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.tts-controls {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    min-width: 220px;
+}
+
+.tts-controls button {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: .45rem .75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: .9rem;
+}
+
+.tts-controls button:hover { opacity: .95; transform: translateY(-1px); }
+
+.tts-voices {
+    border-radius: 8px;
+    padding: .4rem .5rem;
+    border: 1px solid #ddd;
+    background: white;
+    font-size: .95rem;
+}
+
+/* mobile: reduzir largura e centralizar o card */
+@media (max-width: 480px) {
+    .tts-floating {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+        justify-content: center;
+    }
+
+    .tts-controls { min-width: 0; width: 100%; }
 }
