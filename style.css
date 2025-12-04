@@ -14,6 +14,7 @@
     --text-color: #333;
     --background-color: #f8f9fa;
     --success-color: #4caf50;
+    --site-gutter: 1rem; /* aumentado levemente para dar espaço nas bordas */
 }
 
 body {
@@ -21,6 +22,23 @@ body {
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--background-color);
+}
+
+/* Reset de correção: neutraliza o bloco global adicionado por engano que limitava largura/padding */
+body {
+    /* garante que o body não limite a largura do site e não adicione padding extra global */
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0;
+}
+
+/* Ajuste específico para páginas lgpd: reduz padding lateral para caber melhor em telas menores */
+.lgpd-page {
+    /* padding vertical e horizontal controlados por variável */
+    padding: 20px var(--site-gutter);
+    max-width: 1200px;
+    margin: 0 auto;
+    box-sizing: border-box;
 }
 
 .starter-card {
@@ -40,10 +58,13 @@ body {
 
 .card-content i {
     font-size: 1.6rem;
-}iner {
-    max-width: 1200px;
+}
+
+/* corrigido: container (corrigia o typo 'iner') */
+.container {
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 var(--site-gutter); /* usa variável para controlar gutter globalmente */
 }
 
 /* Cabeçalho */
@@ -821,199 +842,425 @@ body {
     }
 }
 
-/* Animações e transições extras */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
+/* Ajustes responsivos finais: evita overlap dos cards flutuantes e melhora espaçamento em mobile */
+@media (max-width: 1024px) {
+    .container { padding: 0 1rem; }
+    main, .unified-content { padding-bottom: calc(5rem + 1rem); } /* garante espaço para os cards */
+}
+
+/* Layout dos cards flutuantes em telas médias/pequenas */
+@media (max-width: 768px) {
+    /* Centraliza o starter bar e deixa mais compacto */
+    .fixed-starter-bar {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        bottom: 1rem;
+        width: min(calc(100% - 2rem), 420px);
+        padding: 0.25rem;
+        pointer-events: auto;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .fixed-starter-bar .starter-card {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.5rem;
+    }
+
+    .fixed-starter-bar .card-initial .card-content h3 { font-size: 1rem; }
+    .fixed-starter-bar .card-selection { width: 100%; }
+
+    /* Move o widget TTS para o topo direito para não cobrir o footer nem o starter bar */
+    .tts-floating {
+        top: 1rem;
+        right: 1rem;
+        left: auto;
+        bottom: auto;
+        transform: none;
+        width: auto;
+    }
+
+    /* Ajusta controles do TTS para aparecerem como dropdown compacto */
+    .tts-controls {
+        position: absolute;
+        top: calc(100% + 0.5rem);
+        right: 0;
+        left: auto;
+        min-width: 200px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
+
+    /* Garante margem inferior suficiente para o conteúdo não ficar encoberto */
+    body.responsive-bottom-space main {
+        padding-bottom: 7.5rem;
     }
 }
 
-.fade-in {
-    animation: fadeInUp 0.6s ease-out;
-}
+/* Em telas muito pequenas (celular) */
+@media (max-width: 420px) {
+    .fixed-starter-bar {
+        width: calc(100% - 2rem);
+        left: 1rem;
+        right: 1rem;
+        transform: none;
+        bottom: 1rem;
+        border-radius: 10px;
+    }
 
-/* Melhorias de acessibilidade */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+    .tts-floating {
+        top: 0.75rem;
+        right: 0.75rem;
+    }
+
+    .tts-toggle {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tts-controls {
+        min-width: 180px;
+        right: 0.25rem;
+        top: calc(100% + 0.4rem);
+    }
+
+    /* Evita que dropdown do TTS exceda a largura da tela */
+    .tts-controls,
+    .tts-controls * {
+        box-sizing: border-box;
+        max-width: calc(100vw - 2rem);
     }
 }
 
-/* Focus visible para melhor acessibilidade */
-button:focus-visible,
-a:focus-visible {
-    outline: 2px solid var(--secondary-color);
-    outline-offset: 2px;
-}
+/* Garante que os botões flutuantes não se sobreponham visualmente (prioridade de z-index) */
+.fixed-starter-bar { z-index: 1000; }
+.tts-floating { z-index: 1100; }
 
 .container {
-    max-width: clamp(320px, 90vw, 1200px);
-    margin: 0 auto;
-    padding: 0 1.25rem; /* espaçamento lateral padrão para leitura confortável */
+    padding-left: var(--site-gutter);
+    padding-right: var(--site-gutter);
 }
 
-/* Espaçamento interno das seções para evitar colagem nas bordas */
+/* aumentos sutis do gutter em telas maiores para melhor leitura */
+@media (min-width: 768px) {
+    :root { --site-gutter: 2rem; } /* mais espaço em telas maiores */
+}
+
+@media (min-width: 1200px) {
+    :root { --site-gutter: 3rem; } /* gutter maior em desktops grandes */
+}
+
+/* garante que seções também respeitem o espaçamento lateral */
 .section,
-.unified-section,
 .hero,
-.footer {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+.footer,
+.unified-section,
+.unified-content {
+    padding-left: var(--site-gutter);
+    padding-right: var(--site-gutter);
 }
 
-/* Constrain e alinhamento dos conteúdos textuais para leitura */
-.unified-content,
-.intro-text,
-.lgpd-text,
-.purpose-text,
-.article-card,
-.resource-category,
-.contact-info,
-.contact-form {
-    max-width: 1000px;
-    margin-left: auto;
-    margin-right: auto;
-    text-align: left; /* força alinhamento à esquerda em telas médias/grandes */
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
-}
-
-/* Em telas pequenas, centraliza hero e botões mantendo padding lateral */
-@media (max-width: 768px) {
-    .unified-content,
-    .intro-text,
-    .lgpd-text,
-    .purpose-text {
-        padding-left: 1rem;
-        padding-right: 1rem;
-        text-align: center; /* mantém centralização no mobile para melhor leitura */
-    }
-}
-
-/* Ajustes finos em tipografia para evitar quebras estranhas */
-p, li {
-    word-break: break-word;
-    hyphens: auto;
-}
-
-/* Card flutuante: comportamento e visibilidade controlável */
-.fixed-starter-bar {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 1000;
-    transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-/* Classe aplicada via JS quando o rodapé está visível para esconder o card */
-.fixed-starter-bar.hidden {
-    opacity: 0;
-    transform: translateY(12px);
-    pointer-events: none;
-}
-
-/* Em telas muito pequenas, desloca o card para ocupar menos área e evitar overlay */
-@media (max-width: 480px) {
-    .fixed-starter-bar {
-        right: 1rem;
-        left: 1rem;
-        bottom: 1rem;
-        display: flex;
-        justify-content: center;
-    }
-
-    .starter-card {
-        max-width: 100%;
-        width: 320px;
-    }
-}
-
-/* Garante margem inferior do conteúdo principal para que footer não seja coberto visualmente */
-main, .content-grid, .unified-content {
-    padding-bottom: calc(4rem + 1rem); /* espaço extra antes do footer */
-}
-
-/* Adição: estilos para o card TTS flutuante */
+/* Substitui/completa regras do TTS para exibir somente um pequeno botão à direita com popup de controles */
 
 .tts-floating {
     position: fixed;
-    left: 1.25rem;
+    right: 1.25rem;
     bottom: 2rem;
-    z-index: 1100;
-    background: #ffffff;
-    border: 1px solid rgba(0,0,0,0.08);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    border-radius: 12px;
-    padding: 0.5rem;
+    z-index: 1200;
     display: flex;
-    gap: 0.5rem;
     align-items: center;
-    transition: transform .2s ease, opacity .2s ease;
-    font-family: inherit;
+    gap: .5rem;
+    pointer-events: auto;
 }
 
-.tts-floating.hidden {
-    opacity: 0;
-    transform: translateY(8px);
-    pointer-events: none;
-}
-
+/* botão redondo compacto com ícone */
 .tts-toggle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
     background: var(--secondary-color);
-    color: white;
+    color: #fff;
     border: none;
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    font-size: 1.05rem;
-    cursor: pointer;
     display: grid;
     place-items: center;
-}
-
-.tts-controls {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-    min-width: 220px;
-}
-
-.tts-controls button {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: .45rem .75rem;
-    border-radius: 8px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: .9rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    font-size: 1.05rem;
 }
 
-.tts-controls button:hover { opacity: .95; transform: translateY(-1px); }
-
-.tts-voices {
-    border-radius: 8px;
-    padding: .4rem .5rem;
-    border: 1px solid #ddd;
-    background: white;
-    font-size: .95rem;
+/* ícone (se Font Awesome estiver presente, será exibido; senão SVG/emoji dentro do botão funcionará) */
+.tts-toggle .tts-icon {
+    display: inline-block;
+    line-height: 0;
 }
 
-/* mobile: reduzir largura e centralizar o card */
+/* popup de controles (inicialmente escondido) */
+.tts-controls {
+    display: none;
+    position: absolute;
+    right: calc(100% + 0.75rem); /* aparece à esquerda do botão */
+    bottom: 50%;
+    transform: translateY(50%);
+    background: #fff;
+    border-radius: 10px;
+    padding: 0.6rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+    min-width: 220px;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* quando o atributo hidden for removido pelo JS, mostra o painel */
+.tts-controls:not([hidden]) {
+    display: flex;
+}
+
+/* ajustes mobile: posiciona o popup acima do botão e limita largura */
 @media (max-width: 480px) {
     .tts-floating {
-        left: 1rem;
-        right: 1rem;
+        right: 0.75rem;
         bottom: 1rem;
-        justify-content: center;
     }
 
-    .tts-controls { min-width: 0; width: 100%; }
+    .tts-controls {
+        right: 0;
+        left: auto;
+        bottom: calc(100% + 0.5rem);
+        transform: none;
+        min-width: 180px;
+        max-width: calc(100vw - 3rem);
+    }
+}
+
+/* mantém prioridade visual evitando sobreposição com starter-bar/rodapé */
+.tts-floating { z-index: 1200; }
+/* === Adicionado: estilos da página LGPD para Micro e Pequenas Empresas === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body {
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #1a3a8f 0%, #2d6bd1 100%);
+    color: white;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+h1 {
+    font-size: 2.8rem;
+    margin-bottom: 15px;
+}
+.subtitle {
+    font-size: 1.3rem;
+    font-weight: 300;
+    max-width: 800px;
+    margin: 0 auto;
+}
+h2 {
+    color: #1a3a8f;
+    border-left: 5px solid #ff7a00;
+    padding-left: 15px;
+    margin: 40px 0 20px 0;
+}
+h3 {
+    color: #2d6bd1;
+    margin: 25px 0 15px 0;
+    display: flex;
+    align-items: center;
+}
+h3:before {
+    content: "✓";
+    background-color: #2d6bd1;
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    font-size: 0.9rem;
+}
+.challenge-box {
+    background-color: #fff5e6;
+    border-left: 4px solid #ff7a00;
+    padding: 25px;
+    border-radius: 0 8px 8px 0;
+    margin: 30px 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+.expert-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin: 40px 0;
+}
+.expert-card {
+    flex: 1;
+    min-width: 300px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border-top: 5px solid #1a3a8f;
+}
+.expert-name {
+    color: #1a3a8f;
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+.expert-role {
+    color: #ff7a00;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: block;
+}
+.result-box {
+    background-color: #e8f4ff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 25px;
+    border: 1px dashed #2d6bd1;
+}
+.phase-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 40px 0;
+}
+.phase {
+    flex: 1;
+    min-width: 250px;
+    background-color: white;
+    padding: 25px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.05);
+}
+.phase-number {
+    display: inline-block;
+    background-color: #1a3a8f;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    line-height: 40px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+.benefit-item {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
+.benefit-icon {
+    color: #2d6bd1;
+    font-size: 1.5rem;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+.cta-box {
+    background: linear-gradient(135deg, #1a3a8f 0%, #2d6bd1 100%);
+    color: white;
+    padding: 50px;
+    text-align: center;
+    border-radius: 10px;
+    margin: 50px 0;
+}
+.cta-button {
+    display: inline-block;
+    background-color: #ff7a00;
+    color: white;
+    padding: 18px 45px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    margin-top: 25px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+.cta-button:hover {
+    background-color: #e56b00;
+    transform: translateY(-3px);
+    box-shadow: 0 7px 14px rgba(255, 122, 0, 0.3);
+}
+ul {
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+li {
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+.tag {
+    display: inline-block;
+    background-color: #e8f4ff;
+    color: #2d6bd1;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    margin: 5px 5px 5px 0;
+}
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.2rem;
+    }
+    .expert-container, .phase-container {
+        flex-direction: column;
+    }
+    .cta-box {
+        padding: 30px 20px;
+    }
+}
+
+/* === Fim da adição === */
+
+/* --- Espaço lateral seguro para toda a página (evita conteúdo colado nas bordas) --- */
+html {
+    padding-left: var(--site-gutter);
+    padding-right: var(--site-gutter);
+    box-sizing: border-box;
+}
+
+/* aplica gutter padrão também a elementos que porventura saíam da .container */
+.hero,
+.section,
+.unified-section,
+.unified-content,
+.footer {
+    padding-left: var(--site-gutter);
+    padding-right: var(--site-gutter);
+}
+
+/* --- Arredondar formas azuis de fundo --- */
+.hero,
+.stats-section,
+.cta-box,
+.purpose-section,
+.lgpd-page header,
+.starter-card {
+    border-radius: 12px;
+    overflow: hidden; /* evita que conteúdo externo quebre o raio */
 }
