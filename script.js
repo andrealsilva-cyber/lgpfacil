@@ -225,64 +225,94 @@ window.addEventListener('load', function() {
     }, 1000);
 });
 
-{ /* Adição: TTS (Web Speech API) para ler o conteúdo da página */ }
+/* Substituir/inserir a partir da função ensureTTSWidget e bloco relacionado ao widget TTS */
+function ensureTTSWidget() {
+    if (document.querySelector('.tts-floating')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'tts-floating';
+    wrapper.innerHTML = `
+        <button class="tts-toggle" aria-pressed="false" title="Ler página">
+            <span class="tts-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M3 10v4h4l5 5V5L7 10H3z" fill="currentColor"/>
+                    <path d="M16.5 8.5a3.5 3.5 0 010 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+        </button>
+        <div class="tts-controls" hidden>
+            <label style="display:flex;gap:.5rem;align-items:center;font-size:.9rem;color:#222">
+                <span>Voz:</span>
+                <select class="tts-voices" aria-label="Selecionar voz" style="min-width:130px"></select>
+            </label>
+            <div style="display:flex;gap:.4rem;">
+                <button class="tts-play" type="button">Ler</button>
+                <button class="tts-pause" type="button">Pausar</button>
+                <button class="tts-stop" type="button">Parar</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(wrapper);
+}
+ensureTTSWidget();
 
-(function () {
-    if (!('speechSynthesis' in window)) return; // se não suportado, sai
+// Referências aos elementos do widget (garante que existam)
+const ttsFloating = document.querySelector('.tts-floating');
+const toggleBtn = document.querySelector('.tts-toggle');
+const controls = document.querySelector('.tts-controls');
+const voicesSelect = document.querySelector('.tts-voices');
+const playBtn = document.querySelector('.tts-play');
+const pauseBtn = document.querySelector('.tts-pause');
+const stopBtn = document.querySelector('.tts-stop');
+const footer = document.querySelector('.footer');
 
+if (!('speechSynthesis' in window)) {
+    // remove controle se não suportado
+    if (ttsFloating) ttsFloating.style.display = 'none';
+} else {
     const synth = window.speechSynthesis;
     let utterance = null;
     let voices = [];
-    const toggleBtn = document.querySelector('.tts-toggle');
-    const controls = document.querySelector('.tts-controls');
-    const voicesSelect = document.querySelector('.tts-voices');
-    const playBtn = document.querySelector('.tts-play');
-    const pauseBtn = document.querySelector('.tts-pause');
-    const stopBtn = document.querySelector('.tts-stop');
-    const ttsFloating = document.querySelector('.tts-floating');
-    const footer = document.querySelector('.footer');
-
-    function getReadableText() {
-        const main = document.querySelector('main') || document.querySelector('.unified-content') || document.body;
-        // remove elementos que não devem ser lidos
-        const clones = main.cloneNode(true);
-        clones.querySelectorAll('script, style, noscript, .fixed-starter-bar, .tts-floating').forEach(n => n.remove());
-        return clones.innerText.trim();
-    }
 
     function populateVoices() {
-        voices = synth.getVoices().filter(v => v.lang && v.name);
+        voices = synth.getVoices().filter(v => v && v.name);
+        if (!voicesSelect) return;
         voicesSelect.innerHTML = '';
         voices.forEach((v, i) => {
             const opt = document.createElement('option');
             opt.value = i;
-            opt.textContent = `${v.name} — ${v.lang}`;
+            opt.textContent = `${v.name} — ${v.lang || ''}`;
             voicesSelect.appendChild(opt);
         });
     }
 
-    // carregar vozes (alguns browsers carregam async)
     populateVoices();
     if (speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = populateVoices;
     }
 
+    function getReadableText() {
+        const main = document.querySelector('main') || document.querySelector('.unified-content') || document.body;
+        const clones = main.cloneNode(true);
+        clones.querySelectorAll('script, style, noscript, .fixed-starter-bar, .tts-floating').forEach(n => n.remove());
+        return clones.innerText.replace(/\s{2,}/g, ' ').trim();
+    }
+
     function createUtterance(text) {
         if (!text) return null;
         const u = new SpeechSynthesisUtterance(text);
-        const selected = voicesSelect.value ? voices[+voicesSelect.value] : voices.find(v => v.lang.startsWith('pt')) || voices[0];
-        if (selected) u.voice = selected;
-        u.rate = 1; // ajustar se desejar
+        const sel = voicesSelect && voicesSelect.selectedIndex >= 0 ? voices[voicesSelect.selectedIndex] : voices.find(v => v.lang && v.lang.startsWith('pt')) || voices[0];
+        if (sel) u.voice = sel;
+        u.rate = 1;
         u.pitch = 1;
         u.lang = u.voice && u.voice.lang ? u.voice.lang : 'pt-BR';
-        u.onend = () => { utterance = null; toggleBtn.textContent = '🔊'; };
-        u.onerror = () => { utterance = null; toggleBtn.textContent = '🔊'; };
+        u.onend = () => { utterance = null; if (toggleBtn) toggleBtn.classList.remove('playing'); };
+        u.onerror = () => { utterance = null; if (toggleBtn) toggleBtn.classList.remove('playing'); };
         return u;
     }
 
     function startReading() {
+        if (!synth) return;
         if (synth.speaking) {
-            // se estava pausado, retomar
             if (synth.paused) synth.resume();
             return;
         }
@@ -292,7 +322,7 @@ window.addEventListener('load', function() {
         if (!utterance) return;
         synth.cancel();
         synth.speak(utterance);
-        toggleBtn.textContent = '⏸';
+        if (toggleBtn) toggleBtn.classList.add('playing');
     }
 
     function pauseReading() {
@@ -302,23 +332,40 @@ window.addEventListener('load', function() {
     function stopReading() {
         if (synth.speaking || synth.paused) synth.cancel();
         utterance = null;
-        toggleBtn.textContent = '🔊';
+        if (toggleBtn) toggleBtn.classList.remove('playing');
     }
 
-    // toggle show/hide controles
+    // Clique no ícone: abrir controles (se oculto) e iniciar a leitura automaticamente
     if (toggleBtn && controls) {
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
             const expanded = toggleBtn.getAttribute('aria-pressed') === 'true';
             toggleBtn.setAttribute('aria-pressed', String(!expanded));
-            controls.hidden = expanded; // mostrar quando estava fechado
+            if (expanded) {
+                controls.hidden = true;
+            } else {
+                controls.hidden = false;
+                // iniciar leitura automaticamente ao abrir
+                startReading();
+            }
         });
     }
 
+    // Botões de controle
     if (playBtn) playBtn.addEventListener('click', startReading);
     if (pauseBtn) pauseBtn.addEventListener('click', pauseReading);
     if (stopBtn) stopBtn.addEventListener('click', stopReading);
 
-    // Esconder o card quando o footer entra na viewport (mesma lógica do starter-card)
+    // Fecha controles ao clicar fora
+    document.addEventListener('click', function (e) {
+        if (!ttsFloating) return;
+        const isInside = ttsFloating.contains(e.target);
+        if (!isInside && controls && !controls.hidden) {
+            controls.hidden = true;
+            if (toggleBtn) toggleBtn.setAttribute('aria-pressed', 'false');
+        }
+    }, { capture: true });
+
+    // Esconder TTS quando footer visível
     if (ttsFloating && footer && 'IntersectionObserver' in window) {
         const io = new IntersectionObserver(entries => {
             entries.forEach(entry => {
@@ -332,6 +379,6 @@ window.addEventListener('load', function() {
         io.observe(footer);
     }
 
-    // limpar ao trocar de página/rota, evitar leitura em background
+    // Cancela TTS ao sair da página
     window.addEventListener('beforeunload', () => { if (synth) synth.cancel(); });
-})();
+}
